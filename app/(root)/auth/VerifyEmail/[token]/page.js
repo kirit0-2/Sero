@@ -2,10 +2,11 @@
 import axios from "axios"
 import { use, useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { web_Login } from "@/routes/website"
 
 const EmailVerification = ({ params }) => {
+    const router = useRouter()
     const [isVerified, setIsVerified] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState(null)
@@ -27,6 +28,10 @@ const EmailVerification = ({ params }) => {
                 
                 if (verificationResponse.success) {
                     setIsVerified(true)
+                    // Redirect to home page after 2 seconds
+                    setTimeout(() => {
+                        router.push('/')
+                    }, 2000)
                 } else {
                     setError(verificationResponse.message)
                 }
@@ -68,13 +73,8 @@ const EmailVerification = ({ params }) => {
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                             </svg>
                             <h2 className="text-2xl font-bold mb-2">Email Verified!</h2>
-                            <p className="text-gray-600 mb-4">Your email has been successfully verified. You can now access your account.</p>
-                            <Link 
-                                href={web_Login} 
-                                className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                            >
-                                Go to Login
-                            </Link>
+                            <p className="text-gray-600 mb-4">Your email has been successfully verified. Redirecting to home page...</p>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
                         </div>
                     ) : (
                         <div className="text-red-600">

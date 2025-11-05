@@ -117,12 +117,12 @@ const ResetPassword = () => {
         throw new Error(response.message)
       }
 
-      showToast('success', response.message)
+      showToast('success', 'Password reset successfully! Redirecting to home...')
       passwordForm.reset()
       
-      // Redirect to login after 2 seconds
+      // Redirect to home page after 2 seconds
       setTimeout(() => {
-        router.push('/auth/login')
+        router.push('/')
       }, 2000)
 
     } catch (error) {
