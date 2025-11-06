@@ -10,7 +10,7 @@ const AdminDashboard = () => {
           Welcome to your admin dashboard
         </p>
       </div>
-{/* 
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -139,7 +139,7 @@ const AdminDashboard = () => {
             </p>
           </CardContent>
         </Card>
-      </div> */}
+      </div>
     </div>
   )
 }

@@ -1,10 +1,12 @@
 "use client"
 import Image from 'next/image'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -21,48 +23,72 @@ import { useSidebar } from "@/components/ui/sidebar"
 
 export function AppSidebar() {
   const { setOpenMobile } = useSidebar()
+  const pathname = usePathname()
+
+  const isActive = (url) => {
+    if (url === '#') return false
+    return pathname === url || pathname.startsWith(url + '/')
+  }
 
   return (
-    <Sidebar>
-      <SidebarHeader className="p-0 h-16 border-b">
-        <div className="flex justify-between items-center px-4 h-full">
-          <Image
-            src={logoBlack}
-            alt="Logo"
-            width={120}
-            height={40}
-            className="h-10 w-auto dark:hidden"
-          />
-          <Image
-            src={logoWhite}
-            alt="Logo"
-            width={120}
-            height={40}
-            className="h-10 w-auto hidden dark:block"
-          />
+    <Sidebar className="border-r">
+      {/* Header with Logo */}
+      <SidebarHeader className="h-16 border-b">
+        <div className="flex items-center justify-center px-4 h-full">
+          <Link href="/admin/dashboard" className="flex items-center gap-2">
+            <Image
+              src={logoBlack}
+              alt="E-store Logo"
+              width={100}
+              height={32}
+              className="h-8 w-auto dark:hidden"
+              priority
+            />
+            <Image
+              src={logoWhite}
+              alt="E-store Logo"
+              width={100}
+              height={32}
+              className="h-8 w-auto hidden dark:block"
+              priority
+            />
+          </Link>
         </div>
       </SidebarHeader>
       
-      <SidebarContent>
-        <SidebarMenu>
+      {/* Navigation Menu */}
+      <SidebarContent className="px-2 py-4">
+        <SidebarMenu className="space-y-1">
           {AdminSidebarMenu.map((menu, index) => (
             <Collapsible key={index} className="group/collapsible">
               <SidebarMenuItem>
                 {menu.submenu && menu.submenu.length > 0 ? (
                   <>
                     <CollapsibleTrigger asChild>
-                      <SidebarMenuButton>
-                        <menu.icon className="h-4 w-4" />
-                        <span>{menu.title}</span>
-                        <LuChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                      <SidebarMenuButton 
+                        className="w-full hover:bg-accent hover:text-accent-foreground transition-colors"
+                        tooltip={menu.title}
+                      >
+                        <menu.icon className="h-5 w-5 shrink-0" />
+                        <span className="flex-1 text-left">{menu.title}</span>
+                        <LuChevronRight className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
+                    <CollapsibleContent className="mt-1">
+                      <SidebarMenuSub className="ml-4 border-l pl-4 space-y-1">
                         {menu.submenu.map((submenuItem, subMenuIndex) => (
                           <SidebarMenuSubItem key={subMenuIndex}>
-                            <SidebarMenuSubButton asChild>
-                              <Link href={submenuItem.url} onClick={() => setOpenMobile(false)}>
+                            <SidebarMenuSubButton 
+                              asChild
+                              isActive={isActive(submenuItem.url)}
+                              className="hover:bg-accent hover:text-accent-foreground transition-colors"
+                            >
+                              <Link 
+                                href={submenuItem.url} 
+                                onClick={() => setOpenMobile(false)}
+                                className="flex items-center gap-2"
+                              >
+                                <span className="h-1.5 w-1.5 rounded-full bg-current" />
                                 {submenuItem.title}
                               </Link>
                             </SidebarMenuSubButton>
@@ -72,9 +98,18 @@ export function AppSidebar() {
                     </CollapsibleContent>
                   </>
                 ) : (
-                  <SidebarMenuButton asChild>
-                    <Link href={menu.url} onClick={() => setOpenMobile(false)}>
-                      <menu.icon className="h-4 w-4" />
+                  <SidebarMenuButton 
+                    asChild
+                    isActive={isActive(menu.url)}
+                    tooltip={menu.title}
+                    className="hover:bg-accent hover:text-accent-foreground transition-colors"
+                  >
+                    <Link 
+                      href={menu.url} 
+                      onClick={() => setOpenMobile(false)}
+                      className="flex items-center gap-3"
+                    >
+                      <menu.icon className="h-5 w-5 shrink-0" />
                       <span>{menu.title}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -84,6 +119,13 @@ export function AppSidebar() {
           ))}
         </SidebarMenu>
       </SidebarContent>
+
+      {/* Footer */}
+      <SidebarFooter className="border-t p-4">
+        <div className="text-center">
+          <p className="text-sm font-semibold text-muted-foreground">Admin Panel</p>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   )
 }
