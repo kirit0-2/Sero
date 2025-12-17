@@ -8,11 +8,13 @@ import axios from 'axios'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import Media from '@/components/Application/Admin/Media'
-import { Divide } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Link } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import useDeleteMutation from '@/hooks/useDeleteMutaion'
+import { useQueryClient } from '@tanstack/react-query'
 
 const BreadCrumbData = [
   { label: "Home", href: Admin_Dashboard, },
@@ -20,9 +22,10 @@ const BreadCrumbData = [
 ]
 
 const MediaPage = () => {
-
+  const queryClient = useQueryClient()
   const [deleteType, setDeleteType] = useState("SD")
   const [selectMedia, setSelectedMedia] = useState([])
+  const [selectAll, setSelectAll] = useState(false)
 
   const searchParams = useSearchParams()
 
@@ -56,19 +59,54 @@ const MediaPage = () => {
       return lastPage.hasMore ? nextPage : undefined
     }
   })
+
+  const deleteMutaion = useDeleteMutation('media-data', '/api/media/delete')
+
+  const handleDelete = (ids, type) => {
+    const idsToDelete = Array.isArray(ids) ? ids : [ids]
+    const typeToDelete = type || deleteType
+
+    if (confirm('Are you sure you want to delete these media?')) {
+      deleteMutaion.mutate(
+        { ids: idsToDelete, deleteType: typeToDelete },
+        {
+          onSuccess: () => {
+            setSelectedMedia([])
+            setSelectAll(false)
+          }
+        }
+      )
+    }
+  }
+
+  const handleSelectAll = (checked) => {
+    setSelectAll(checked)
+    if (checked && data?.pages) {
+      const allIds = data.pages.flatMap(page => page.mediaData.map(m => m._id))
+      setSelectedMedia(allIds)
+    } else {
+      setSelectedMedia([])
+    }
+  }
+
+  // Sync selectAll state if manual selection changes
+  useEffect(() => {
+    if (selectMedia.length === 0) setSelectAll(false)
+  }, [selectMedia])
+
   return (
     <>
       <div>
         <BreadCrumb data={BreadCrumbData} />
         <Card className='p-0'>
           <CardHeader className='pb-4 border-b'>
-Ser            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <h4 className='font-bold text-2xl tracking-tight'>{deleteType === 'SD' ? 'Media' : 'Trash'}</h4>
                 <p className='text-sm text-muted-foreground'>Manage your images and assets.</p>
               </div>
               <div className='flex items-center gap-3'>
-                {deleteType === 'SD' && <UploadMedia />}
+                {deleteType === 'SD' && <UploadMedia isMultiple={true} queryClient={queryClient} />}
                 <div className="flex items-center bg-gray-100 dark:bg-zinc-800 rounded-lg p-1">
                   <button
                     onClick={() => setDeleteType("SD")}
@@ -105,13 +143,17 @@ Ser            <div className="flex flex-col sm:flex-row justify-between items-s
                 </span>
                 <div className="flex gap-2">
                   <button
-                    className="px-3 py-1.5 text-xs bg-white dark:bg-zinc-800 border hover:bg-gray-50 rounded-md shadow-sm dark:hover:bg-zinc-700"
-                    onClick={() => setSelectedMedia([])}
+                    className="px-3 py-1.5 text-xs bg-white dark:bg-zinc-800 border hover:bg-gray-50 rounded-md shadow-sm dark:hover:bg-zinc-700 font-medium"
+                    onClick={() => {
+                      setSelectedMedia([])
+                      setSelectAll(false)
+                    }}
                   >
                     Deselect All
                   </button>
                   <button
-                    className="px-3 py-1.5 text-xs bg-red-500 hover:bg-red-600 text-white rounded-md shadow-sm"
+                    onClick={() => handleDelete(selectMedia)}
+                    className="px-3 py-1.5 text-xs bg-red-500 hover:bg-red-600 text-white rounded-md shadow-sm font-medium transition-colors"
                   >
                     {deleteType === 'SD' ? 'Move to Trash' : 'Delete Permanently'}
                   </button>
@@ -120,19 +162,17 @@ Ser            <div className="flex flex-col sm:flex-row justify-between items-s
             )}
           </CardHeader>
           <CardContent className="p-6">
-            {selectMedia.length > 0
-              &&
-              <div className='py-2 px-3 bg-violet-200 mb-2 rounded flex justify-between items-center'>
-                <Label>
-                  <Checkbox
-                    checked={selectAll}
-                    onCheckedChange={handleSelectAll}
-                  />
-                  Select All
-                </Label>
-
-              </div>
-            }
+            {/* Select All Bar */}
+            <div className='flex items-center space-x-2 mb-6 px-1'>
+              <Checkbox
+                id="select-all"
+                checked={selectAll}
+                onCheckedChange={handleSelectAll}
+              />
+              <Label htmlFor="select-all" className="text-sm font-medium cursor-pointer text-muted-foreground select-none">
+                Select All Items
+              </Label>
+            </div>
 
 
             {status === 'pending' ? (
@@ -164,6 +204,7 @@ Ser            <div className="flex flex-col sm:flex-row justify-between items-s
                           <Media
                             key={media._id}
                             media={media}
+                            handleDelete={() => handleDelete(media._id)}
                             deleteType={deleteType}
                             selectMedia={selectMedia}
                             setSelectedMedia={setSelectedMedia}

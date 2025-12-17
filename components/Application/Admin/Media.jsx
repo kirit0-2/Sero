@@ -1,93 +1,95 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import React from 'react'
-import Image, { Link } from 'next/image'
+import Image from 'next/image'
+import Link from 'next/link'
 import { HiOutlineDotsVertical } from "react-icons/hi";
 import { MdDelete } from "react-icons/md";
 import { LuLink } from "react-icons/lu";
 import { MdOutlineEdit } from "react-icons/md";
 import { Admin_Media_Edit } from '@/routes/Admin'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
-
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 const Media = ({ media, handleDelete, deleteType, selectMedia, setSelectedMedia }) => {
-    const handleCheck = () => {
-        let newSelectedMedia = []  
-        if (selectMedia.includes(media._id)) {
-            newSelectedMedia = newSelectedMedia.filter(m => m !== media._id)
+
+    const handleCheck = (checked) => {
+        if (checked) {
+            setSelectedMedia(prev => [...prev, media._id])
         } else {
-            newSelectedMedia = [...newSelectedMedia, media._id]
+            setSelectedMedia(prev => prev.filter(id => id !== media._id))
         }
-        setSelectedMedia(newSelectMedia)
-    } 
-    const handleCopyLink = () => {
-        navigator.clipboard.writeText(media?.secure_url)
     }
+
+    const handleCopyLink = (e) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(media?.secure_url)
+        // Add toast here if possible, but keeping it simple for now
+    }
+
+    const isSelected = selectMedia.includes(media._id);
+
     return (
         <div
             className={`
                 relative group rounded-xl overflow-hidden cursor-pointer transition-all duration-300
-                border-2 ${selectMedia.includes(media._id) ? 'border-primary shadow-md' : 'border-transparent hover:border-gray-200 dark:hover:border-gray-800'}
+                border-2 ${isSelected ? 'border-primary shadow-md' : 'border-transparent hover:border-gray-200 dark:hover:border-gray-800'}
             `}
-            onClick={() => {
-                if (selectMedia.includes(media._id)) {
-                    setSelectedMedia((prev) => prev.filter((id) => id !== media._id))
-                } else {
-                    setSelectedMedia((prev) => [...prev, media._id])
-                }
-            }}
+            onClick={() => handleCheck(!isSelected)}
         >
             {/* Selection Overlay */}
             <div className={`
                 absolute inset-0 bg-black/40 z-10 transition-opacity duration-200
-                ${selectMedia.includes(media._id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+                ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
             `} />
 
             {/* Checkbox */}
             <div className={`
-                absolute top-3 left-3 z-20 transition-all duration-200
-                ${selectMedia.includes(media._id) ? 'opacity-100 scale-100' : 'opacity-0 group-hover:opacity-100 group-hover:scale-100'}
-            `}>
+                absolute top-3 left-3 z-30 transition-all duration-200
+                ${isSelected ? 'opacity-100 scale-100' : 'opacity-0 group-hover:opacity-100 group-hover:scale-100'}
+            `}
+                onClick={(e) => e.stopPropagation()}
+            >
                 <Checkbox
-                    checked={selectMedia.includes(media._id)}
+                    checked={isSelected}
                     onCheckedChange={handleCheck}
                     className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground border-white/50 bg-black/20"
                 />
             </div>
+
             {/* Vertical Dots Menu */}
-            <DropdownMenu>
-                <DropdownMenuTrigger>
-                    <div className="w-6 h-6 flex items-center justify-center rounded-full bg-black/20 text-white/80 hover:bg-black/40 cursor-pointer">
-                        <HiOutlineDotsVertical />
-                    </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                    {deleteType === "SD" &&
-                        <>
-                            <DropdownMenuItem asChild className="cursor-pointer">
-                                <Link href={Admin_Media_Edit(media._id)}>
-                                    <MdOutlineEdit />
-                                    Edit
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer">
-                                <LuLink />
-                                <span onClick={handleCopyLink}>Copy Link</span>
-                            </DropdownMenuItem>
-
-                        </>
-                    }
-                    <DropdownMenuItem className="cursor-pointer">
-                        <MdDelete color="red" />
-                        {deleteType === "SD" ? "Move to Trash" : "Delete Permanently"}
-                    </DropdownMenuItem>
-
-                </DropdownMenuContent>
-            </DropdownMenu>
-            <div className={`
-                absolute top-3 right-3 z-20 transition-all duration-200
-                ${selectMedia.includes(media._id) ? 'opacity-100 scale-100' : 'opacity-0 group-hover:opacity-100 group-hover:scale-100'}
-            `}>
-                {/* Placeholder for vertical dots icon or component */}
+            <div className="absolute top-3 right-3 z-30" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button className="w-8 h-8 flex items-center justify-center rounded-full bg-black/20 text-white hover:bg-black/60 transition-colors backdrop-blur-sm opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100">
+                            <HiOutlineDotsVertical />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                        {deleteType === "SD" && (
+                            <>
+                                <DropdownMenuItem asChild>
+                                    <Link href={Admin_Media_Edit(media._id)} className="cursor-pointer flex items-center gap-2">
+                                        <MdOutlineEdit className="w-4 h-4" />
+                                        <span>Edit</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer flex items-center gap-2">
+                                    <LuLink className="w-4 h-4" />
+                                    <span>Copy Link</span>
+                                </DropdownMenuItem>
+                            </>
+                        )}
+                        <DropdownMenuItem
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete();
+                            }}
+                            className="cursor-pointer text-red-600 focus:text-red-600 flex items-center gap-2"
+                        >
+                            <MdDelete className="w-4 h-4" />
+                            <span>{deleteType === "SD" ? "Move to Trash" : "Delete Permanently"}</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
             {/* Image Container */}

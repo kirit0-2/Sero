@@ -20,9 +20,9 @@ export async function GET(request) {
 
         let filter = {}
         if (deleteType === "SD") {
-            filter = { deleteType: null }
+            filter = { deletedAt: null }
         } else if (deleteType === "PD") {
-            filter = { deleteType: { $ne: null } }
+            filter = { deletedAt: { $ne: null } }
         }
 
         const mediaData = await MediaModel.find(filter).sort({ createdAt: -1 }).skip(page * limit).limit(limit).lean()
