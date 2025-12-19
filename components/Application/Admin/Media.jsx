@@ -3,13 +3,13 @@ import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { HiOutlineDotsVertical } from "react-icons/hi";
-import { MdDelete } from "react-icons/md";
+import { MdDelete, MdRestore } from "react-icons/md";
 import { LuLink } from "react-icons/lu";
 import { MdOutlineEdit } from "react-icons/md";
 import { Admin_Media_Edit } from '@/routes/Admin'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
-const Media = ({ media, handleDelete, deleteType, selectMedia, setSelectedMedia }) => {
+const Media = ({ media, handleDelete, handleRestore, deleteType, selectMedia, setSelectedMedia }) => {
 
     const handleCheck = (checked) => {
         if (checked) {
@@ -64,7 +64,7 @@ const Media = ({ media, handleDelete, deleteType, selectMedia, setSelectedMedia 
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                        {deleteType === "SD" && (
+                        {deleteType === "SD" ? (
                             <>
                                 <DropdownMenuItem asChild>
                                     <Link href={Admin_Media_Edit(media._id)} className="cursor-pointer flex items-center gap-2">
@@ -77,6 +77,17 @@ const Media = ({ media, handleDelete, deleteType, selectMedia, setSelectedMedia 
                                     <span>Copy Link</span>
                                 </DropdownMenuItem>
                             </>
+                        ) : (
+                            <DropdownMenuItem
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRestore();
+                                }}
+                                className="cursor-pointer flex items-center gap-2 text-green-600 focus:text-green-600"
+                            >
+                                <MdRestore className="w-4 h-4" />
+                                <span>Restore</span>
+                            </DropdownMenuItem>
                         )}
                         <DropdownMenuItem
                             onClick={(e) => {

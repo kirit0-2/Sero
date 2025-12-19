@@ -47,7 +47,6 @@ const MediaPage = () => {
     error,
     fetchNextPage,
     hasNextPage,
-    isFetching,
     isFetchingNextPage,
     status,
   } = useInfiniteQuery({
@@ -61,6 +60,7 @@ const MediaPage = () => {
   })
 
   const deleteMutaion = useDeleteMutation('media-data', '/api/media/delete')
+  const restoreMutation = useDeleteMutation('media-data', '/api/media/restore')
 
   const handleDelete = (ids, type) => {
     const idsToDelete = Array.isArray(ids) ? ids : [ids]
@@ -69,6 +69,22 @@ const MediaPage = () => {
     if (confirm('Are you sure you want to delete these media?')) {
       deleteMutaion.mutate(
         { ids: idsToDelete, deleteType: typeToDelete },
+        {
+          onSuccess: () => {
+            setSelectedMedia([])
+            setSelectAll(false)
+          }
+        }
+      )
+    }
+  }
+
+  const handleRestore = (ids) => {
+    const idsToRestore = Array.isArray(ids) ? ids : [ids]
+
+    if (confirm('Are you sure you want to restore these media?')) {
+      restoreMutation.mutate(
+        { ids: idsToRestore, deleteType: 'RESTORE' }, // 'RESTORE' ensures PUT method in reuse hook
         {
           onSuccess: () => {
             setSelectedMedia([])
@@ -151,6 +167,14 @@ const MediaPage = () => {
                   >
                     Deselect All
                   </button>
+                  {deleteType === 'PD' && (
+                    <button
+                      onClick={() => handleRestore(selectMedia)}
+                      className="px-3 py-1.5 text-xs bg-green-500 hover:bg-green-600 text-white rounded-md shadow-sm font-medium transition-colors"
+                    >
+                      Restore
+                    </button>
+                  )}
                   <button
                     onClick={() => handleDelete(selectMedia)}
                     className="px-3 py-1.5 text-xs bg-red-500 hover:bg-red-600 text-white rounded-md shadow-sm font-medium transition-colors"
@@ -205,6 +229,7 @@ const MediaPage = () => {
                             key={media._id}
                             media={media}
                             handleDelete={() => handleDelete(media._id)}
+                            handleRestore={() => handleRestore(media._id)}
                             deleteType={deleteType}
                             selectMedia={selectMedia}
                             setSelectedMedia={setSelectedMedia}
